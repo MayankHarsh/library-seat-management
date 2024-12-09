@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Seat Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #080000;
+            color: #8e17b2;
+            line-height: 1.6;
+        }
+
+        /* Style for the seat layout container */
+#layoutContainer {
+    display: none;
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* Style for each seat button */
+.seat {
+    font-size: 1.2rem;
+    padding: 10px 15px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    background-color: #f0f0f0; /* Default background for available seats */
+}
+
+/* Hover effect for available seats */
+.seat:hover {
+    background-color: #e0e0e0;
+}
+
+/* Style for reserved (taken) seats */
+.seat.taken {
+    background-color: #dc3545; /* Red color for reserved seats */
+    color: white;
+    cursor: not-allowed;  /* Disable hover effect on taken seats */
+}
+
+/* Style for selected (clicked) seats */
+.seat.selected {
+    background-color: #28a745; /* Green color for selected seats */
+    color: white;
+}
+
+/* Style for the layout container, centering the seats */
+#seatLayout {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr); /* Create a 10-column layout */
+    gap: 10px;
+    justify-content: center;
+    margin: 20px auto;
+}
+
+/* Style for the seat layout grid (responsive design) */
+@media (max-width: 768px) {
+    #seatLayout {
+        grid-template-columns: repeat(5, 1fr); /* 5 columns for smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    #seatLayout {
+        grid-template-columns: repeat(3, 1fr); /* 3 columns for very small screens */
+    }
+}
+
+        h3 {
+            color: #6200ea;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6200ea, #3700b3);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: 500;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background-color: #3700b3;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        main {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #8e44ad, #2980b9);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 -3px 0 rgba(255, 255, 255, 0.2);
+}
+
+button:hover {
+    background: linear-gradient(135deg, #2980b9, #8e44ad);
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), inset 0 -3px 0 rgba(255, 255, 255, 0.3);
+}
+
+button:active {
+    transform: scale(0.98);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15), inset 0 -2px 0 rgba(255, 255, 255, 0.1);
+}
+
+
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 14px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            border-top: 1px solid #444;
+        }
+
+        #actions {
+            margin: 30px auto;
+            max-width: 700px;
+            padding: 40px;
+            border-radius: 15px;
+            background-color: white;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            color: #6200ea;
+            font-size: 2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Library Management System</h1>
+    </header>
+
+    <main>
+        <div id="actions">
+            <h2>Check-In</h2>
+            <div class="mb-3">
+                <input type="text" id="barcodeInput" class="form-control" placeholder="Scan your barcode here..." autofocus>
+            </div>
+            <div class="mb-3">
+                <input type="text" id="manualIdInput" class="form-control" placeholder="Or enter your ID manually...">
+            </div>
+            <button class="btn btn-primary w-100 mb-3" onclick="checkIn()">Check In</button>
+
+            <h2>Reserve a Seat</h2>
+            <div class="mb-3">
+                <select id="hall" class="form-select">
+                    <option value="readingHall">Reading Hall</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <input type="number" id="seatNumber" class="form-control" placeholder="Enter Seat Number">
+            </div>
+            <button class="btn btn-success w-100 mb-3" onclick="reserveSeat()">Reserve Seat</button>
+
+            <h2>Check-Out</h2>
+            <button class="btn btn-danger w-100 mb-3" onclick="checkOut()">Check Out</button>
+
+            <h2>View Hall Layout</h2>
+            <button class="btn btn-info w-100 mb-3" onclick="viewHallLayout()">View Layout</button>
+        </div>
+
+        <div id="layoutContainer">
+            <h3>Hall Layout</h3>
+            <div class="seat-container" id="seatLayout">
+                <!-- Seats will be dynamically generated here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalMessage"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let scannedUserId = '';  // Variable to store the scanned barcode ID
+
+    // Listen for input changes from the barcode scanner
+    document.getElementById('barcodeInput').addEventListener('input', function(event) {
+        scannedUserId = event.target.value;  // Store the scanned barcode value
+        console.log('Scanned User ID:', scannedUserId);  // Output the ID to the console
+    });
+
+    function checkIn() {
+        let manualId = document.getElementById('manualIdInput').value;
+        let userId = scannedUserId || manualId;
+
+        if (userId) {
+            alert('Checked in with User ID: ' + userId);
+        } else {
+            alert('Please scan your barcode or enter your ID manually.');
+        }
+    }
+
+    function reserveSeat() {
+        let seatNumber = document.getElementById('seatNumber').value;
+        let userId = scannedUserId;
+
+        if (seatNumber && userId) {
+            alert('Seat ' + seatNumber + ' reserved for User ID: ' + userId);
+            updateSeatAvailability(seatNumber);  // Update seat availability visually
+        } else {
+            alert('Please scan your barcode or enter your ID manually, and select a seat.');
+        }
+    }
+
+    function checkOut() {
+        let manualId = document.getElementById('manualIdInput').value;
+        let userId = scannedUserId || manualId;
+
+        if (userId) {
+            alert('Checked out with User ID: ' + userId);
+        } else {
+            alert('Please scan your barcode or enter your ID manually.');
+        }
+    }
+
+    const totalSeats = 50; // Number of seats in the layout
+    let takenSeats = [5, 10, 15, 20]; // Example of taken seat numbers
+
+    // Generate the seat layout
+    function generateSeatLayout(seats) {
+        const seatLayout = document.getElementById('seatLayout');
+        seatLayout.innerHTML = ''; // Clear existing layout
+
+        for (let i = 1; i <= totalSeats; i++) {
+            const seat = document.createElement('button');
+            seat.textContent = i;
+            seat.className = 'seat';
+
+            // Mark the seat as taken if it's in the takenSeats array
+            if (seats.includes(i)) {
+                seat.classList.add('taken');
+                seat.disabled = true; // Disable taken seats
+            }
+
+            // Add a click event listener for interaction
+            seat.addEventListener('click', () => {
+                if (!seat.classList.contains('taken')) {
+                    seat.classList.toggle('selected');
+                    alert(`Seat ${i} ${seat.classList.contains('selected') ? 'selected' : 'deselected'}`);
+                }
+            });
+
+            seatLayout.appendChild(seat);
+        }
+    }
+
+    // Show the hall layout when the button is clicked
+    function viewHallLayout() {
+        const layoutContainer = document.getElementById('layoutContainer');
+        layoutContainer.style.display = 'block';
+        generateSeatLayout(takenSeats); // Use takenSeats to generate the initial layout
+    }
+
+    // Update seat availability after reservation
+    function updateSeatAvailability(seatNumber) {
+        // Mark the reserved seat as taken
+        takenSeats.push(parseInt(seatNumber));
+        generateSeatLayout(takenSeats); // Re-render layout with updated availability
+    }
+
+</script>
+
+</body>
+</html>
